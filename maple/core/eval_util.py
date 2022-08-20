@@ -34,8 +34,8 @@ def get_generic_path_information(paths, stat_prefix=''):
     statistics['Num Paths'] = len(paths)
     statistics[stat_prefix + 'Average Returns'] = get_average_returns(paths)
 
-    statistics[stat_prefix + 'Task Returns Sum'] = np.mean([path['reward_actions_sum'] for path in paths])
-    statistics[stat_prefix + 'Task Returns Avg'] = np.mean([path['reward_actions_sum'] / path['path_length_actions'] for path in paths])
+    # statistics[stat_prefix + 'Task Returns Sum'] = np.mean([path['reward_actions_sum'] for path in paths])
+    # statistics[stat_prefix + 'Task Returns Avg'] = np.mean([path['reward_actions_sum'] / path['path_length_actions'] for path in paths])
 
     statistics[stat_prefix + 'Num Rollout Success'] = get_num_rollout_success(paths)
 

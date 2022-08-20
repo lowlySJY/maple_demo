@@ -14,6 +14,7 @@ from maple.torch.sac.sac import SACTrainer
 from maple.torch.sac.sac_hybrid import SACHybridTrainer
 from maple.torch.networks import ConcatMlp
 from maple.torch.torch_rl_algorithm import TorchBatchRLAlgorithm
+from robosuite.wrappers import VisualizationWrapper
 
 import numpy as np
 import torch
@@ -48,8 +49,55 @@ def experiment(variant):
 
         return env
 
+    def make_demo_env():
+        torch.set_num_threads(1)
+
+        env_variant = variant['env_variant']
+
+        controller_config = load_controller_config(default_controller=env_variant['controller_type_demo'])
+        controller_config_update = env_variant.get('controller_config_update', {})
+        controller_config.update(controller_config_update)
+
+        robot_type = env_variant.get('robot_type', 'Panda')
+
+        obs_keys = env_variant['robot_keys'] + env_variant['obj_keys']
+
+        env = suite.make(
+            env_name=env_variant['env_type'],
+            # env_name='PickPlaceCan',
+            robots=robot_type,
+            render_camera="agentview",
+            has_renderer=True,
+            has_offscreen_renderer=False,
+            use_camera_obs=False,
+            controller_configs=controller_config,
+            **env_variant['env_kwargs_demo']
+        )
+
+        env = GymWrapper(env, keys=obs_keys)
+
+        return env
+
     expl_env = make_env(mode='expl')
     eval_env = make_env(mode='eval')
+
+    # create demo_env and initialize device
+    demo_env = make_demo_env()
+    demo_env = VisualizationWrapper(demo_env)
+    demo_varint = variant['demo_kwargs']
+    if demo_varint['device'] == "keyboard":
+        from robosuite.devices import Keyboard
+        device = Keyboard(pos_sensitivity=demo_varint['pos_sensitivity'], rot_sensitivity=demo_varint['rot_sensitivity'])
+        demo_env.viewer.add_keypress_callback("any", device.on_press)
+        demo_env.viewer.add_keyup_callback("any", device.on_release)
+        demo_env.viewer.add_keyrepeat_callback("any", device.on_press)
+    elif demo_varint['device'] == "spacemouse":
+        from robosuite.devices import SpaceMouse
+        device = SpaceMouse(pos_sensitivity=demo_varint['pos_sensitivity'], rot_sensitivity=demo_varint['rot_sensitivity'])
+    else:
+        raise Exception(
+            "Invalid device choice: choose either 'keyboard' or 'spacemouse'."
+        )
 
     obs_dim = expl_env.observation_space.low.size
     action_dim = eval_env.action_space.low.size
@@ -152,12 +200,23 @@ def experiment(variant):
         save_env_in_snapshot=False,
         rollout_fn_kwargs=rollout_fn_kwargs,
     )
+    demo_path_collector = MdpPathCollector(
+        demo_env,
+        policy,
+        save_env_in_snapshot=False,
+        device=device,
+    )
     replay_buffer = EnvReplayBuffer(
+        variant['replay_buffer_size'],
+        expl_env,
+    )
+    replay_buffer_demo = EnvReplayBuffer(
         variant['replay_buffer_size'],
         expl_env,
     )
     trainer = trainer_class(
         env=eval_env,
+        # env=expl_env,
         policy=policy,
         qf1=qf1,
         qf2=qf2,
@@ -174,9 +233,12 @@ def experiment(variant):
         trainer=trainer,
         exploration_env=expl_env,
         evaluation_env=eval_env,
+        demonstration_env=demo_env,
         exploration_data_collector=expl_path_collector,
         evaluation_data_collector=eval_path_collector,
+        demonstration_data_collector=demo_path_collector,
         replay_buffer=replay_buffer,
+        replay_buffer_demo=replay_buffer_demo,
         **variant['algorithm_kwargs']
     )
 

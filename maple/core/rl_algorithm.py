@@ -22,15 +22,18 @@ def _get_epoch_timings():
     return times
 
 
-class BaseRLAlgorithm(object, metaclass=abc.ABCMeta):
+class   BaseRLAlgorithm(object, metaclass=abc.ABCMeta):
     def __init__(
             self,
             trainer,
             exploration_env,
             evaluation_env,
+            demonstration_env,
             exploration_data_collector: DataCollector,
             evaluation_data_collector: DataCollector,
+            demonstration_data_collector: DataCollector,
             replay_buffer: ReplayBuffer,
+            replay_buffer_demo: ReplayBuffer,
             eval_epoch_freq=1,
             expl_epoch_freq=1,
             eval_only=False,
@@ -39,9 +42,12 @@ class BaseRLAlgorithm(object, metaclass=abc.ABCMeta):
         self.trainer = trainer
         self.expl_env = exploration_env
         self.eval_env = evaluation_env
+        self.demo_env = demonstration_env
         self.expl_data_collector = exploration_data_collector
         self.eval_data_collector = evaluation_data_collector
+        self.demo_data_collector = demonstration_data_collector
         self.replay_buffer = replay_buffer
+        self.replay_buffer_demo = replay_buffer_demo
         self._start_epoch = 0
 
         self.pre_epoch_funcs = []

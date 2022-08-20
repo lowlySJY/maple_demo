@@ -12,19 +12,32 @@ base_variant = dict(
         terminals_all_false=True,
     ),
     algorithm_kwargs=dict(
-        num_epochs=10000,
-        num_expl_steps_per_train_loop=3000,
-        num_eval_steps_per_epoch=3000,
-        num_trains_per_train_loop=1000,
-        min_num_steps_before_training=30000,
+        num_epochs=10000, # 10000 in original paper
+        num_expl_steps_per_train_loop=900, # 3000 in ori-paper
+        num_eval_steps_per_epoch=900, # 3000 in ori-paper
+        num_trains_per_train_loop=500, # 1000 in ori-paper
+        min_num_steps_before_training=5000, # 30000 in original paper
         max_path_length=150,
-        batch_size=1024,
+        batch_size=64, # 1024 in ori-paper
         eval_epoch_freq=10,
+        # parameters for demo mode
+        use_demo_as_init=False,
+        use_all_demo_path=True,
+        use_demo_cross=True,
+        min_epochs_demo_train=1,
+        num_trains_per_train_loop_demo=900,
+        nums_demo_path=3,
+        batch_size_demo=64,
+    ),
+    demo_kwargs=dict(
+        device='keyboard',
+        pos_sensitivity=0.02,
+        rot_sensitivity=0.01,
     ),
     trainer_kwargs=dict(
         discount=0.99,
         soft_target_tau=1e-3,
-        target_update_period=1,
+        target_update_period=10,
         policy_lr=3e-5,
         qf_lr=3e-5,
         reward_scale=1,
@@ -42,11 +55,42 @@ base_variant = dict(
         robot_keys=['robot0_eef_pos', 'robot0_eef_quat', 'robot0_gripper_qpos', 'robot0_gripper_qvel'],
         obj_keys=['object-state'],
         controller_type='OSC_POSITION_YAW',
+        controller_type_demo='OSC_POSE',
         controller_config_update=dict(
             position_limits=[
                 [-0.30, -0.30, 0.75],
                 [0.15, 0.30, 1.15]
             ],
+        ),
+        env_kwargs_demo=dict(
+            ignore_done=True,
+            reward_shaping=True,
+            hard_reset=False,
+            control_freq=10,
+            camera_heights=512,
+            camera_widths=512,
+            table_offset=[-0.075, 0, 0.8],
+            reward_scale=5.0,
+
+            skill_config=dict(
+                skills=['reach_osc'],
+                # skills=['atomic'],
+                aff_penalty_fac=15.0,
+                base_config=dict(
+                    global_xyz_bounds=[
+                        [-0.30, -0.30, 0.80],
+                        [0.15, 0.30, 0.95]
+                    ],
+                    lift_height=0.95,
+                    binary_gripper=True,
+                    aff_threshold=0.06,
+                    aff_type='dense',
+                    aff_tanh_scaling=10.0,
+                ),
+                atomic_config=dict(
+                    use_ori_params=True,
+                ),
+            )
         ),
         env_kwargs=dict(
             ignore_done=True,
@@ -60,6 +104,7 @@ base_variant = dict(
 
             skill_config=dict(
                 skills=['atomic', 'open', 'reach', 'grasp', 'push'],
+                # skills_demo=['atomic'],
                 aff_penalty_fac=15.0,
 
                 base_config=dict(
@@ -112,7 +157,8 @@ base_variant = dict(
         ),
     ),
     save_video=True,
-    save_video_period=100,
+    # save_video_period=100,
+    save_video_period=25,
     dump_video_kwargs=dict(
         rows=1,
         columns=6,
@@ -191,16 +237,20 @@ env_params = dict(
 
 def process_variant(variant):
     if args.debug:
-        variant['algorithm_kwargs']['num_epochs'] = 3
+        variant['algorithm_kwargs']['num_epochs'] = 10
         variant['algorithm_kwargs']['batch_size'] = 64
         steps = 50
         variant['algorithm_kwargs']['max_path_length'] = steps
+        variant['algorithm_kwargs']['eval_epoch_freq'] = 2
         variant['algorithm_kwargs']['num_eval_steps_per_epoch'] = steps
         variant['algorithm_kwargs']['num_expl_steps_per_train_loop'] = steps
         variant['algorithm_kwargs']['min_num_steps_before_training'] = steps
         variant['algorithm_kwargs']['num_trains_per_train_loop'] = 50
+        variant['algorithm_kwargs']['min_epochs_demo_train'] = 2
+        variant['algorithm_kwargs']['num_trains_per_train_loop_demo'] = steps
         variant['replay_buffer_size'] = int(1E3)
         variant['dump_video_kwargs']['columns'] = 2
+
 
     if args.no_video:
         variant['save_video'] = False
@@ -224,12 +274,12 @@ def deep_update(source, overrides):
 if __name__ == "__main__":
     # noinspection PyTypeChecker
     parser = argparse.ArgumentParser()
-    parser.add_argument('--env', type=str)
+    parser.add_argument('--env', type=str, default='lift')
     parser.add_argument('--label', type=str, default='test')
     parser.add_argument('--no_video', action='store_true')
     parser.add_argument('--no_gpu', action='store_true')
     parser.add_argument('--gpu_id', type=int, default=0)
-    parser.add_argument('--debug', action='store_true')
+    parser.add_argument('--debug', default=False, action='store_true')
     parser.add_argument('--first_variant', action='store_true')
     parser.add_argument('--snapshot_gap', type=int, default=25)
 
@@ -251,7 +301,8 @@ if __name__ == "__main__":
             snapshot_mode='gap_and_last',
             snapshot_gap=args.snapshot_gap,
             exp_id=exp_id,
-            use_gpu=(not args.no_gpu),
+            # use_gpu=(not args.no_gpu),
+            use_gpu=(args.no_gpu),
             gpu_id=args.gpu_id,
             mode='local',
             num_exps_per_instance=1,

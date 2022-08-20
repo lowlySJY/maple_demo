@@ -63,7 +63,10 @@ class SimpleReplayBuffer(ReplayBuffer):
             self._size += 1
 
     def random_batch(self, batch_size):
-        indices = np.random.choice(self._size, size=batch_size, replace=self._replace or self._size < batch_size)
+        if (batch_size == 1):
+            indices = 0
+        else:
+            indices = np.random.choice(self._size, size=batch_size, replace=self._replace or self._size < batch_size)
         if not self._replace and self._size < batch_size:
             warnings.warn('Replace was set to false, but is temporarily set to true because batch size is larger than current size of replay.')
         batch = dict(

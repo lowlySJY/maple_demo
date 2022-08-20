@@ -142,6 +142,7 @@ def rollout(
         if d:
             break
         o = next_o
+
     actions = np.array(actions)
     if len(actions.shape) == 1:
         actions = np.expand_dims(actions, 1)

@@ -173,7 +173,7 @@ class SACHybridTrainer(SACTrainer):
         Policy and Alpha Loss
         """
         dd = self.get_dist_dict(obs, one_hot=self.one_hot)
-        log_pi_s = dd.get('log_pi_s', None)
+        log_pi_s = dd.get('log_pi_s', None)   # what is log_pi_s
         log_pi_p = dd['log_pi_p']
 
         if self.use_automatic_entropy_tuning:
@@ -230,8 +230,10 @@ class SACHybridTrainer(SACTrainer):
             target_q_values -= (alpha_s * new_log_pi_s)
 
         q_target = self.reward_scale * rewards + (1. - terminals) * self.discount * target_q_values
+        q_target_mean = q_target.mean()
         qf1_loss = self.qf_criterion(q1_pred, q_target.detach())
         qf2_loss = self.qf_criterion(q2_pred, q_target.detach())
+        print("q_target_mean:{: .2f},   qf1_loss:{: .2f},   qf2_loss:{: .2f}".format(q_target_mean, qf1_loss, qf2_loss))
 
         """
         Save some statistics for eval

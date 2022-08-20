@@ -30,6 +30,10 @@ def dump_video(
         logdir = osp.join(logdir, 'vis_expl')
         if not os.path.exists(logdir):
             os.mkdir(logdir)
+    if mode == 'eval':
+        logdir = osp.join(logdir, 'vis_eval')
+        if not os.path.exists(logdir):
+            os.mkdir(logdir)
 
     frames = []
     H = imsize
