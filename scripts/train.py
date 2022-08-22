@@ -17,7 +17,7 @@ base_variant = dict(
         num_eval_steps_per_epoch=900, # 3000 in ori-paper
         num_trains_per_train_loop=500, # 1000 in ori-paper
         min_num_steps_before_training=5000, # 30000 in original paper
-        max_path_length=150,
+        max_path_length=120,
         batch_size=64, # 1024 in ori-paper
         eval_epoch_freq=10,
         # parameters for demo mode
@@ -26,7 +26,7 @@ base_variant = dict(
         use_demo_cross=True,
         min_epochs_demo_train=1,
         num_trains_per_train_loop_demo=900,
-        nums_demo_path=3,
+        nums_demo_path=1,
         batch_size_demo=64,
     ),
     demo_kwargs=dict(

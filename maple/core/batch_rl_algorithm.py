@@ -10,6 +10,7 @@ from maple.samplers.data_collector import PathCollector
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
 from maple.core.dict_rw import save_paths
+from maple.core.dict_rw import load_paths
 
 class BatchRLAlgorithm(BaseRLAlgorithm, metaclass=abc.ABCMeta):
     def __init__(
@@ -92,26 +93,27 @@ class BatchRLAlgorithm(BaseRLAlgorithm, metaclass=abc.ABCMeta):
                 print('demo epoch:', epoch)
 
         if self.use_demo_cross and not self.use_demo_as_init:
-            demo_paths = self.demo_data_collector.collect_demo_paths(self.max_path_length, self.nums_demo_path, self.use_all_demo_path)
-            # revise the rewards based on actions by experts and expl.env
-            validate_paths = []
-            for demo_path in demo_paths:
-                validate_path = self.expl_data_collector.rollout_fn_demo(demo_path['actions'], demo_path['observations'])
-                rewards_demo = np.array(demo_path['rewards'])
-                rewards_demo_val = np.array(validate_path['rewards'])
-                index = np.array(range(0, len(rewards_demo)))
-                figure(figsize=(10, 6))
-                plt.title("Compare rewards under different env with same demo-actions")
-                plt.xlabel("env step")
-                plt.ylabel("reward")
-                plt.plot(index, rewards_demo, color='b', label="rewards by experts")
-                plt.plot(index, rewards_demo_val, color='r', label="rewards by env")
-                plt.legend(loc="center right")
-                plt.show()
-                validate_paths.append(validate_path)
-                # if (np.max(validate_path['rewards']) == 5):
-                #     save_paths(validate_path, '/home/jinyi/文档/code/maple/data/lift/demo')
-            # self.replay_buffer_demo.add_paths(demo_paths)
+        #     demo_paths = self.demo_data_collector.collect_demo_paths(self.max_path_length, self.nums_demo_path, self.use_all_demo_path)
+        #     # revise the rewards based on actions by experts and expl.env
+        #     validate_paths = []
+        #     for demo_path in demo_paths:
+        #         validate_path = self.expl_data_collector.rollout_fn_demo(demo_path['actions'], demo_path['observations'])
+        #         rewards_demo = np.array(demo_path['rewards'])
+        #         rewards_demo_val = np.array(validate_path['rewards'])
+        #         index = np.array(range(0, len(rewards_demo)))
+        #         figure(figsize=(10, 6))
+        #         plt.title("Compare rewards under different env with same demo-actions")
+        #         plt.xlabel("env step")
+        #         plt.ylabel("reward")
+        #         plt.plot(index, rewards_demo, color='b', label="rewards by experts")
+        #         plt.plot(index, rewards_demo_val, color='r', label="rewards by env")
+        #         plt.legend(loc="center right")
+        #         plt.show()
+        #         validate_paths.append(validate_path)
+        #         # if (np.max(validate_path['rewards']) == 5):
+        #         #     save_paths(validate_path, '/home/jinyi/文档/code/maple/data/lift/demo')
+        #     # self.replay_buffer_demo.add_paths(demo_paths)
+            validate_paths = load_paths(self.max_path_length, discard_incomplete_paths=True, file_dir='/home/jinyi/文档/code/maple/data/lift/demo')
             self.replay_buffer_demo.add_paths(validate_paths)
             self.demo_data_collector.end_epoch(-1)
 
@@ -145,7 +147,7 @@ class BatchRLAlgorithm(BaseRLAlgorithm, metaclass=abc.ABCMeta):
             # task1 to make sure demo data is correct
             # '''
             # self.eval_data_collector.demo_in_eval(validate_paths)
-            # self.expl_data_collector.demo_in_eval(validate_paths)
+            self.expl_data_collector.demo_in_eval(validate_paths)
             # self._end_epoch(epoch)
             # continue
 
@@ -160,15 +162,16 @@ class BatchRLAlgorithm(BaseRLAlgorithm, metaclass=abc.ABCMeta):
                     gt.stamp('training', unique=False)
                     self.training_mode(False)
 
-                    if epoch % self._expl_epoch_freq == 0:
-                        new_expl_paths = self.expl_data_collector.collect_new_paths(
-                            self.max_path_length,
-                            self.num_expl_steps_per_train_loop,
-                            discard_incomplete_paths=True,  # False,
-                        )
-                    gt.stamp('exploration sampling', unique=False)
-                    self.replay_buffer.add_paths(new_expl_paths)
-                    gt.stamp('data storing', unique=False)
+                    # if epoch % self._expl_epoch_freq == 0:
+                    #     new_expl_paths = self.expl_data_collector.collect_new_paths(
+                    #         self.max_path_length,
+                    #         self.num_expl_steps_per_train_loop,
+                    #         discard_incomplete_paths=True,  # False,
+                    #     )
+
+                    # gt.stamp('exploration sampling', unique=False)
+                    # self.replay_buffer.add_paths(new_expl_paths)
+                    # gt.stamp('data storing', unique=False)
                     self._end_epoch(epoch)
                     continue
 
