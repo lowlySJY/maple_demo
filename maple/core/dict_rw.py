@@ -9,7 +9,10 @@ def save_paths(path, file_dir):
     os.chdir(filename)
     now = datetime.now()
     dt_string = now.strftime("%Y-%m-%d-%H-%M")
-    print(filename)
+    file_str = os.listdir(filename)
+    dt_string = '2022-08-17-24-53.npy'
+    if (dt_string in file_str):
+        dt_string = now.strftime("%Y-%m-%d-%H-%M-%S")
     np.save(dt_string, path)
 
 def load_paths(max_path_length, discard_incomplete_paths, file_dir):
@@ -50,6 +53,7 @@ if __name__ == '__main__':
             actions=a,
             rewards=np.array(r),
         )
+    save_paths(path, '/home/jinyi/文档/code/maple/data/lift/demo')
     paths = load_paths(120, discard_incomplete_paths=True, file_dir='/home/jinyi/文档/code/maple/data/lift/demo')
     for p in paths:
         print(p['observations'])

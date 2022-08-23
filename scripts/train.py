@@ -23,7 +23,7 @@ base_variant = dict(
         # parameters for demo mode
         use_demo_as_init=False,
         use_all_demo_path=True,
-        use_demo_cross=True,
+        use_demo_cross=False,
         min_epochs_demo_train=1,
         num_trains_per_train_loop_demo=900,
         nums_demo_path=1,
@@ -279,7 +279,7 @@ if __name__ == "__main__":
     parser.add_argument('--no_video', action='store_true')
     parser.add_argument('--no_gpu', action='store_true')
     parser.add_argument('--gpu_id', type=int, default=0)
-    parser.add_argument('--debug', default=False, action='store_true')
+    parser.add_argument('--debug', default=True, action='store_true')
     parser.add_argument('--first_variant', action='store_true')
     parser.add_argument('--snapshot_gap', type=int, default=25)
 

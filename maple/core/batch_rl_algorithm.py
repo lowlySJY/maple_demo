@@ -147,7 +147,7 @@ class BatchRLAlgorithm(BaseRLAlgorithm, metaclass=abc.ABCMeta):
             # task1 to make sure demo data is correct
             # '''
             # self.eval_data_collector.demo_in_eval(validate_paths)
-            self.expl_data_collector.demo_in_eval(validate_paths)
+            # self.expl_data_collector.demo_in_eval(validate_paths)
             # self._end_epoch(epoch)
             # continue
 
@@ -182,6 +182,14 @@ class BatchRLAlgorithm(BaseRLAlgorithm, metaclass=abc.ABCMeta):
                             self.num_expl_steps_per_train_loop,
                             discard_incomplete_paths=True,  # False,
                         )
+                        '''
+                        save succeess paths into demo replay buffer
+                        '''
+                        for expl_path in new_expl_paths:
+                            expl_env_infos = expl_path['env_infos'][-1]
+                            if (expl_env_infos['success'] == 1):
+                                save_paths(expl_path, '/home/jinyi/文档/code/maple/data/lift/demo')
+
                     gt.stamp('exploration sampling', unique=False)
                     self.replay_buffer.add_paths(new_expl_paths)
                     gt.stamp('data storing', unique=False)
