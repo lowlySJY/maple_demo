@@ -1,6 +1,10 @@
+import random
+
 import numpy as np
 import os
 from datetime import datetime
+import matplotlib.pyplot as plt
+from matplotlib.pyplot import figure
 
 def save_paths(path, file_dir):
     filename = file_dir
@@ -36,6 +40,24 @@ def load_paths(max_path_length, discard_incomplete_paths, file_dir):
             paths.append(path)
     return paths
 
+def plot_paths(path1, path2):
+    rewards_p1 = np.array(path1['rewards'])
+    rewards_p2 = np.array(path2['rewards'])
+    # plt.hold(True)
+    index_p1 = np.array(range(0, len(rewards_p1)))
+    index_p2 = np.array(range(0, len(rewards_p2)))
+    figure(figsize=(10, 6))
+    plt.title("Compare rewards under different env with same demo-actions")
+    plt.xlabel("env step")
+    plt.ylabel("reward")
+    plt.plot(index_p1, rewards_p1, color='b', label="rewards by experts")
+    plt.plot(index_p2, rewards_p2, color='r', label="rewards by env")
+    plt.legend(loc="center right")
+    plt.show()
+    plt.close()
+
+
+
 if __name__ == '__main__':
     o = np.ones([7, 21])
     a = np.ones([7, 13])
@@ -53,8 +75,11 @@ if __name__ == '__main__':
             actions=a,
             rewards=np.array(r),
         )
-    save_paths(path, '/home/jinyi/文档/code/maple/data/lift/demo')
-    paths = load_paths(120, discard_incomplete_paths=True, file_dir='/home/jinyi/文档/code/maple/data/lift/demo')
-    for p in paths:
-        print(p['observations'])
-        print(p['rewards'])
+    # save_paths(path, '/home/jinyi/文档/code/maple/data/lift/demo')
+    discard = False
+    max_length_path = 120
+    path_expl = load_paths(max_length_path, discard_incomplete_paths=discard, file_dir='/home/jinyi/文档/code/maple/data/lift/demo/expl')
+    path_expert = load_paths(max_length_path, discard_incomplete_paths=discard, file_dir='/home/jinyi/文档/code/maple/data/lift/demo/expert')
+    size = min(len(path_expl), len(path_expert))
+    indices = random.randint(0, size - 1)
+    plot_paths(path_expert[indices], path_expl[indices])

@@ -1,16 +1,13 @@
 import abc
 
 import gtimer as gt
-import numpy as np
 
 from maple.core.rl_algorithm import BaseRLAlgorithm
 from maple.data_management.replay_buffer import ReplayBuffer
 from maple.samplers.data_collector import PathCollector
 
-import matplotlib.pyplot as plt
-from matplotlib.pyplot import figure
-from maple.core.dict_rw import save_paths
-from maple.core.dict_rw import load_paths
+from maple.data_management.dict_rw import save_paths
+from maple.data_management.dict_rw import load_paths
 
 class BatchRLAlgorithm(BaseRLAlgorithm, metaclass=abc.ABCMeta):
     def __init__(

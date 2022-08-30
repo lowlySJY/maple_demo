@@ -4,7 +4,7 @@ from collections import OrderedDict
 import gtimer as gt
 
 from maple.core import logger, eval_util
-from maple.core.logging import append_log
+from maple.core.my_logging import append_log
 from maple.data_management.replay_buffer import ReplayBuffer
 from maple.samplers.data_collector import DataCollector
 

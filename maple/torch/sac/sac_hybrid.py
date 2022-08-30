@@ -8,7 +8,7 @@ from maple.core.loss import LossStatistics
 
 import maple.torch.pytorch_util as ptu
 from maple.core.eval_util import create_stats_ordered_dict
-from maple.core.logging import add_prefix
+from maple.core.my_logging import add_prefix
 import gtimer as gt
 
 from maple.torch.sac.sac import SACTrainer

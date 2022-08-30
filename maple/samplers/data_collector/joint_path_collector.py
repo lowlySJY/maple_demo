@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from typing import Dict
 
-from maple.core.logging import add_prefix
+from maple.core.my_logging import add_prefix
 from maple.samplers.data_collector import PathCollector
 
 
